@@ -1,4 +1,6 @@
-﻿namespace lab2.Crypto
+﻿using System.ComponentModel;
+
+namespace lab2.Crypto
 {
     public class Md5
     {
@@ -52,7 +54,8 @@
             return ComputeFileHashWithProgress(filePath, null);
         }
 
-        public string ComputeFileHashWithProgress(string filePath, Action<int>? progressCallback)
+        public string ComputeFileHashWithProgress(string filePath, Action<int>? progressCallback,
+    BackgroundWorker? backgroundWorker = null)
         {
             Initialize();
 
@@ -66,9 +69,19 @@
             int bytesRead;
             while ((bytesRead = stream.Read(buffer, 0, 64)) == 64)
             {
+                if (backgroundWorker?.CancellationPending == true)
+                {
+                    throw new OperationCanceledException("Операция отменена пользователем");
+                }
+
                 ProcessBlock(buffer);
                 totalBytes += bytesRead;
                 ReportProgress(totalBytes, fileLength, progressCallback, ref lastProgress);
+            }
+
+            if (backgroundWorker?.CancellationPending == true)
+            {
+                throw new OperationCanceledException("Операция отменена пользователем");
             }
 
             // Обработка последнего блока

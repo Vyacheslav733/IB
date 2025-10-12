@@ -73,6 +73,8 @@ namespace lab2.UI
                 statusLabel.Text = "Вычисление хэша...";
                 statusLabel.ForeColor = Color.FromArgb(255, 193, 7);
 
+                cancelButton.Visible = true;
+
                 // Запускаем вычисление в фоновом потоке
                 backgroundWorker?.RunWorkerAsync(filePathTextBox.Text);
             }
@@ -96,8 +98,13 @@ namespace lab2.UI
             {
                 // Вычисляем хэш с отслеживанием прогресса
                 string hash = md5Calculator.ComputeFileHashWithProgress(filePath,
-                    progress => backgroundWorker?.ReportProgress(progress));
+                    progress => backgroundWorker?.ReportProgress(progress),
+                    backgroundWorker);
                 e.Result = hash;
+            }
+            catch (OperationCanceledException)
+            {
+                e.Cancel = true;
             }
             catch (Exception ex)
             {
@@ -116,6 +123,9 @@ namespace lab2.UI
             Cursor = Cursors.Default;
             calculateHashButton.Enabled = true;
             selectFileButton.Enabled = true;
+
+            cancelButton.Visible = false;
+            cancelButton.Enabled = true;
 
             if (e.Error != null)
             {
@@ -156,6 +166,8 @@ namespace lab2.UI
             statusLabel.ForeColor = Color.FromArgb(220, 53, 69);
             hashResultTextBox.Clear();
             progressBar.Visible = false;
+
+            cancelButton.Visible = false;
         }
 
         private void CancelButton_Click(object sender, EventArgs e)
@@ -165,6 +177,8 @@ namespace lab2.UI
                 backgroundWorker.CancelAsync();
                 statusLabel.Text = "Отмена операции...";
                 statusLabel.ForeColor = Color.FromArgb(255, 193, 7);
+
+                cancelButton.Enabled = false;
             }
         }
     }
